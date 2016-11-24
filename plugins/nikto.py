@@ -19,8 +19,11 @@ class NiktoPlugin(BasePlugin):
         return "nikto"
 
     def start(self, report_filename):
+        options = "-C all -ask no -nointeractive -Display 1234"
         if self.isSSL:
-            cmd_line = "nikto -h https://{0} -p {1} -ssl -ask no -F txt -nointeractive -o {2}".format(self.host, self.port, report_filename)
+            cmd_line = "nikto -h https://{0}:{1} {2} -ssl -F txt -o {3}".format(
+                self.host, self.port, options, report_filename)
         else:
-            cmd_line = "nikto -h http://{0} -p {1} -ask no -F txt -nointeractive -o {2}".format(self.host, self.port, report_filename)
+            cmd_line = "nikto -h http://{0}:{1} {2} -F txt -o {3}".format(
+                self.host, self.port, options, report_filename)
         os.system(cmd_line)
