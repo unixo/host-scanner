@@ -8,12 +8,12 @@ class BasePlugin(object):
         self.port = port
 
     @classmethod
-    def handled_services(cls):
-        raise NotImplemented
+    def handled_services(self):
+        return self.services
 
     @classmethod
-    def name(cls):
-        raise NotImplemented
+    def name(self):
+        return self.plugin_name
 
     @classmethod
     def can_handle(cls, service):
