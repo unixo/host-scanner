@@ -11,12 +11,13 @@ from libnmap.process import NmapProcess
 from libnmap.objects.report import NmapReport
 from libnmap.parser import NmapParser, NmapParserException
 from plugins.nikto import NiktoPlugin
+from plugins.testssl import TestSSLPlugin
 import logging
 
 
 class Scanner:
 
-    PLUGINS = [NiktoPlugin]
+    PLUGINS = [NiktoPlugin, TestSSLPlugin]
 
     def __init__(self, target, ports='all', output_folder='.', verbose=False):
         self.target = target
@@ -125,7 +126,11 @@ class Scanner:
         nm_host = nm_report.hosts.pop()
         open_services = [service for service in nm_host.services if service.open()]
         for nm_serv in open_services:
-            self.services.append((nm_serv.port, nm_serv.protocol, nm_serv.service, nm_serv.tunnel))
+            if nm_serv.service == 'http' and nm_serv.tunnel == 'ssl':
+                nm_serv_service = 'https'
+            else:
+                nm_serv_service = nm_serv.service
+            self.services.append((nm_serv.port, nm_serv.protocol, nm_serv_service, nm_serv.tunnel))
             logger.debug("Service found {0:>5s}/{1:3s} {2}".format(str(nm_serv.port), nm_serv.protocol, nm_serv.service))
 
 
