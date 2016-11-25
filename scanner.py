@@ -23,6 +23,7 @@ class Scanner:
         self.verbose = verbose
         self.services = []
         self.port_scanner_done = False
+        self.plugins = Scanner.plugins()
 
     def create_path(self, sub_folder):
         full_path = self.output_folder + "/" + self.target + "/" + sub_folder
@@ -46,6 +47,10 @@ class Scanner:
         nm_xml.write(content)
         nm_xml.close()
 
+    def enable_plugins(self, plugins):
+        lc_plugins = [plugin.lower() for plugin in plugins.split(",")]
+        self.plugins = filter(lambda x: x.plugin_name.lower() in lc_plugins, self.plugins)
+
     def start(self):
         self.port_scanner_done = False
         self.services = []
@@ -58,7 +63,12 @@ class Scanner:
 
     @staticmethod
     def plugins():
-        filenames = [name for root, dirs, files in os.walk("plugins") for name in files if name.endswith("Plugin.py") and name != "BasePlugin.py"]
+        """
+        Return a list of all available plugin classes (located in "plugins" folder)
+        :return: list
+        """
+        filenames = [name for root, dirs, files in os.walk("plugins") for name in files
+                     if name.endswith("Plugin.py") and name != "BasePlugin.py"]
         modules = [importlib.import_module('plugins.'+f[:-3]) for f in filenames]
         plugin_classes = []
         for idx, file_name in enumerate(filenames):
@@ -70,11 +80,11 @@ class Scanner:
         if not self.port_scanner_done and self.services == []:
             self.extract_services_from_reports()
         for port, protocol, service, tunnel in self.services:
-            for plugin in Scanner.plugins():
+            for plugin in self.plugins:
                 if plugin.can_handle(service):
                     filename = self.create_path(service) + "/{0}:{1}-{2}.txt".format(self.target, port, plugin.name())
-
                     p = plugin(self.target, port, tunnel)
+                    logger.info("Starting {0} on {1} for service {2}".format(p.plugin_name, self.target, service))
                     p.start(filename)
 
     def tcp_port_scanner(self):
@@ -146,7 +156,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--verbose", action="store_true", default=False)
 parser.add_argument("-d", "--dig-only", action="store_true", default=False, dest="digonly")
 parser.add_argument("-t", action="append", dest="targets", help="target(s) to scan", required=True)
-parser.add_argument("-p", dest="ports", default="-", help="ports to scan, comma separated")
+parser.add_argument("-p", dest="ports", default="-", help="ports to scan, comma separated (range allowed)")
+parser.add_argument("-P", dest="plugins", help="list of plugins to execute, comma separated")
 parser.add_argument("-o", dest="output", default=".", help="output folder")
 args = parser.parse_args()
 
@@ -156,6 +167,8 @@ logger = logging.getLogger("host-scanner")
 
 for host in args.targets:
     scanner = Scanner(host, args.ports, args.output, args.verbose)
+    if args.plugins is not None:
+        scanner.enable_plugins(args.plugins)
     if not args.digonly:
         scanner.start()
     scanner.dig()
