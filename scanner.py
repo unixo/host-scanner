@@ -10,14 +10,11 @@ import os
 from libnmap.process import NmapProcess
 from libnmap.objects.report import NmapReport
 from libnmap.parser import NmapParser, NmapParserException
-from plugins.nikto import NiktoPlugin
-from plugins.testssl import TestSSLPlugin
 import logging
+import importlib
 
 
 class Scanner:
-
-    PLUGINS = [NiktoPlugin, TestSSLPlugin]
 
     def __init__(self, target, ports='all', output_folder='.', verbose=False):
         self.target = target
@@ -59,11 +56,21 @@ class Scanner:
         self._extract_services(udp_report)
         self.port_scanner_done = True
 
+    @staticmethod
+    def plugins():
+        filenames = [name for root, dirs, files in os.walk("plugins") for name in files if name.endswith("Plugin.py") and name != "BasePlugin.py"]
+        modules = [importlib.import_module('plugins.'+f[:-3]) for f in filenames]
+        plugin_classes = []
+        for idx, file_name in enumerate(filenames):
+            module = modules[idx]
+            plugin_classes.append(getattr(module, file_name[:-3]))
+        return plugin_classes
+
     def dig(self):
         if not self.port_scanner_done and self.services == []:
             self.extract_services_from_reports()
         for port, protocol, service, tunnel in self.services:
-            for plugin in Scanner.PLUGINS:
+            for plugin in Scanner.plugins():
                 if plugin.can_handle(service):
                     filename = self.create_path(service) + "/{0}:{1}-{2}.txt".format(self.target, port, plugin.name())
 
