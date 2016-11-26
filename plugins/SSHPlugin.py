@@ -9,7 +9,6 @@ class SSHPlugin(BasePlugin):
 
     plugin_name = "ssh"
     services = ["ssh"]
-    options = "--quiet --warnings batch"
 
     def __init__(self, host, port, tunnel="", **kwargs):
         BasePlugin.__init__(self, host, port)
