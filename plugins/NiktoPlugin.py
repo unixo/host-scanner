@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from BasePlugin import BasePlugin
+import logging
 import os
 
 
@@ -11,6 +12,7 @@ class NiktoPlugin(BasePlugin):
     options = "-C all -ask no -nointeractive -Display 1234"
 
     def __init__(self, host, port, tunnel="", **kwargs):
+        self.logger = logging.getLogger("nikto")
         BasePlugin.__init__(self, host, port)
         self.isSSL = True if tunnel == "ssl" else False
 
@@ -21,4 +23,5 @@ class NiktoPlugin(BasePlugin):
         else:
             cmd = "nikto -h http://{0}:{1} {2} -F txt -o {3}".format(
                 self.host, self.port, self.options, report_filename)
+        self.logger.debug("cmdline: {0}".format(cmd))
         os.system(cmd)

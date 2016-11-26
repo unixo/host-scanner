@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from BasePlugin import BasePlugin
+import logging
 import os
 
 
@@ -18,10 +19,12 @@ class DirsearchPlugin(BasePlugin):
     def __init__(self, host, port, tunnel="", **kwargs):
         BasePlugin.__init__(self, host, port)
         self.isSSL = True if tunnel == "ssl" else False
+        self.logger = logging.getLogger("dirsearch")
 
     def start(self, report_filename):
         url = "{0}://{1}:{2}/".format("https" if self.isSSL else "http", self.host, self.port)
         exts = ",".join(self.extensions)
         wordlists = " ".join(["-w "+file for file in self.wordlists])
         cmd_line = "dirsearch.py -u {0} -e {1} --plain-text-report={2} {3}".format(url, exts, report_filename, wordlists)
+        self.logger.debug("cmdline: {0}".format(cmd_line))
         os.system(cmd_line)
