@@ -1,9 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-#
-# Dependencies:
-# * pip install python-libnmap (https://github.com/savon-noir/python-libnmap)
 
 import argparse
 import os
@@ -24,33 +19,20 @@ class Scanner:
         self.services = []
         self.port_scanner_done = False
         self.plugins = Scanner.plugins()
+        self.logger = logging.getLogger("host-scanner")
 
     def create_path(self, sub_folder):
         full_path = self.output_folder + "/" + self.target + "/" + sub_folder
         if not (os.path.exists(full_path) and os.path.isdir(full_path)):
-            logger.debug("Creating folder {0}".format(full_path))
+            self.logger.debug("Creating folder {0}".format(full_path))
             os.makedirs(full_path)
         return full_path
 
-    @staticmethod
-    def nm_callback(nm_process):
+    def nm_callback(self, nm_process):
         nm_task = nm_process.current_task
-        if args.verbose and nm_task:
-            logger.debug("Task {0} ({1}): ETC: {2} DONE: {3}%".format(nm_task.name, nm_task.status,
+        if self.verbose and nm_task:
+            self.logger.debug("Task {0} ({1}): ETC: {2} DONE: {3}%".format(nm_task.name, nm_task.status,
                                                                       nm_task.etc, nm_task.progress))
-
-    @staticmethod
-    def save_file(filename, content):
-        """
-        Store an XML report to file
-        :param filename: string Output filename
-        :param content: string Content to be saved
-        :return:
-        """
-        logger.debug("Writing results to {0}".format(filename))
-        nm_xml = open(filename, "w")
-        nm_xml.write(content)
-        nm_xml.close()
 
     def enable_plugins(self, plugins):
         """
@@ -93,7 +75,7 @@ class Scanner:
         Start analyzing open services
         :return:
         """
-        logger.info("Analyzing found services")
+        self.logger.info("Analyzing found services")
         if not self.port_scanner_done and self.services == []:
             self.extract_services_from_reports()
         for port, protocol, service, tunnel in self.services:
@@ -101,38 +83,35 @@ class Scanner:
                 if plugin.can_handle(service):
                     filename = self.create_path(service) + "/{0}:{1}-{2}.txt".format(self.target, port, plugin.name())
                     p = plugin(self.target, port, tunnel)
-                    logger.info("Starting {0} on {1} for service {2}".format(p.plugin_name, self.target, service))
+                    self.logger.info("Starting {0} on {1} for service {2}".format(p.plugin_name, self.target, service))
                     p.start(filename)
 
     def tcp_port_scanner(self):
-        logger.info("Starting TCP service enumeration on {0}".format(self.target))
-        nm_tcp_options = "-Pn -sV -O -T4 -p{0}".format("-" if self.ports == 'all' else self.ports)
-        nm = NmapProcess(self.target, options=nm_tcp_options, event_callback=Scanner.nm_callback)
+        self.logger.info("Starting TCP service enumeration on {0}".format(self.target))
+        nm_filename = self.create_path("nmap") + "/" + self.target
+        nm_tcp_options = "-Pn -sV -O -T4 -p{0} -oA {1}".format("-" if self.ports == 'all' else self.ports, nm_filename)
+        nm = NmapProcess(self.target, options=nm_tcp_options, event_callback=self.nm_callback)
         nm.run()
         if nm.rc != 0:
-            logger.error("Something went wrong with port scanning, exiting: {0}".format(nm.stderr))
+            self.logger.error("Something went wrong with port scanning, exiting: {0}".format(nm.stderr))
             return False
-
-        nm_filename = self.create_path("nmap") + "/" + self.target + ".xml"
-        Scanner.save_file(nm_filename, nm.stdout)
 
         try:
             nm_parsed = NmapParser.parse(nm.stdout)
         except NmapParserException as e:
-            logger.error("Exception raised while parsing scan: {0}".format(e.msg))
+            self.logger.error("Exception raised while parsing scan: {0}".format(e.msg))
         return nm_parsed
 
     def udp_port_scanner(self):
-        logger.info("Starting UDP service enumeration on {0} [top 200 ports]".format(self.target))
-        nm = NmapProcess(self.target, options="-n -Pn -sC -sU --top-ports 200 -T4", event_callback=Scanner.nm_callback)
+        self.logger.info("Starting UDP service enumeration on {0} [top 200 ports]".format(self.target))
+        nm_filename = self.create_path("nmap") + "/" + self.target + "-UDP"
+        nm_udp_options = "-n -Pn -sC -sU --top-ports 200 -T4 -oA {0}".format(nm_filename)
+        nm = NmapProcess(self.target, options=nm_udp_options, event_callback=self.nm_callback)
         nm.run()
         if nm.rc != 0:
-            logger.error("Something went wrong with port scanning, exiting")
+            self.logger.error("Something went wrong with port scanning, exiting")
             print nm.stderr
             return False
-
-        nm_filename = self.create_path("nmap") + "/" + self.target + "-UDP.xml"
-        Scanner.save_file(nm_filename, nm.stdout)
 
         try:
             nm_parsed = NmapParser.parse(nm.stdout)
@@ -171,27 +150,6 @@ class Scanner:
             else:
                 nm_serv_service = nm_serv.service
             self.services.append((nm_serv.port, nm_serv.protocol, nm_serv_service, nm_serv.tunnel))
-            logger.debug("Service found {0:>5s}/{1:3s} {2}".format(str(nm_serv.port), nm_serv.protocol, nm_serv.service))
+            self.logger.debug("Service found {0:>5s}/{1:3s} {2}".format(str(nm_serv.port), nm_serv.protocol, nm_serv.service))
 
 
-# Arguments parsing
-parser = argparse.ArgumentParser()
-parser.add_argument("-v", "--verbose", action="store_true", default=False)
-parser.add_argument("-d", "--dig-only", action="store_true", default=False, dest="digonly")
-parser.add_argument("-t", action="append", dest="targets", help="target(s) to scan", required=True)
-parser.add_argument("-p", dest="ports", default="-", help="ports to scan, comma separated (range allowed)")
-parser.add_argument("-P", dest="plugins", help="list of plugins to execute, comma separated")
-parser.add_argument("-o", dest="output", default=".", help="output folder")
-args = parser.parse_args()
-
-# Logging facility
-logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
-logger = logging.getLogger("host-scanner")
-
-for host in args.targets:
-    scanner = Scanner(host, args.ports, args.output, args.verbose)
-    if args.plugins is not None:
-        scanner.enable_plugins(args.plugins)
-    if not args.digonly:
-        scanner.start_port_scanning()
-    scanner.dig()
