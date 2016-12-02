@@ -16,8 +16,8 @@ class DirsearchPlugin(BasePlugin):
         "/usr/share/seclists/Discovery/Web_Content/big.txt"
     ]
 
-    def __init__(self, host, port, tunnel="", **kwargs):
-        BasePlugin.__init__(self, host, port)
+    def __init__(self, host, port, service, tunnel="", **kwargs):
+        BasePlugin.__init__(self, host, port, service)
         self.isSSL = True if tunnel == "ssl" else False
         self.logger = logging.getLogger("dirsearch")
 

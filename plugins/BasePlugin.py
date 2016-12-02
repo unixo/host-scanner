@@ -3,9 +3,10 @@
 
 class BasePlugin(object):
 
-    def __init__(self, host, port, **kwargs):
+    def __init__(self, host, port, service, **kwargs):
         self.host = host
         self.port = port
+        self.service = service
 
     @classmethod
     def handled_services(self):

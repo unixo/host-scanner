@@ -10,8 +10,8 @@ class SSHPlugin(BasePlugin):
     plugin_name = "ssh"
     services = ["ssh"]
 
-    def __init__(self, host, port, tunnel="", **kwargs):
-        BasePlugin.__init__(self, host, port)
+    def __init__(self, host, port, service, tunnel="", **kwargs):
+        BasePlugin.__init__(self, host, port, service)
         self.logger = logging.getLogger("ssh")
 
     def start(self, report_filename):
