@@ -23,9 +23,10 @@ class NmapPlugin(BasePlugin):
     }
     services = options.keys()
 
-    def __init__(self, host, port, service, tunnel="", **kwargs):
-        BasePlugin.__init__(self, host, port, service)
-        self.logger = logging.getLogger("nmap-{0}".format(service))
+    def __init__(self, host, port, **kwargs):
+        BasePlugin.__init__(self, host, port, **kwargs)
+        # override logger name by adding service name
+        self.logger = logging.getLogger("nmap-{0}".format(self.service))
 
     def start(self, report_filename):
         scripts = self.options[self.service]

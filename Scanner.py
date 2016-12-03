@@ -11,11 +11,12 @@ import importlib
 
 class Scanner:
 
-    def __init__(self, target, ports='all', output_folder='.', verbose=False):
+    def __init__(self, target, ports='all', output_folder='.', verbose=False, plugins_conf=[]):
         self.target = target
         self.ports = ports
         self.output_folder = output_folder
         self.verbose = verbose
+        self.plugins_conf = plugins_conf
         self.services = []
         self.plugins = Scanner.plugins()
         self.logger = logging.getLogger("host-scanner")
@@ -58,35 +59,43 @@ class Scanner:
         Return a list of all available plugin classes (located in "plugins" folder)
         :return: list
         """
-        filenames = [name for root, dirs, files in os.walk("plugins") for name in files if name.endswith("Plugin.py") and name != "BasePlugin.py"]
-        modules = [importlib.import_module('plugins.' + f[:-3]) for f in filenames]
+        file_names = [name for root, dirs, files in os.walk("plugins") for name in files if name.endswith("Plugin.py") and name != "BasePlugin.py"]
+        modules = [importlib.import_module('plugins.' + f[:-3]) for f in file_names]
         plugin_classes = []
-        for idx, file_name in enumerate(filenames):
+        for idx, file_name in enumerate(file_names):
             module = modules[idx]
             plugin_classes.append(getattr(module, file_name[:-3]))
         return plugin_classes
 
     def dig(self):
         """
-        Start analyzing open services
-        :return:
+        Analyze open services
         """
-        self.logger.info("Analyzing found services")
         if len(self.services) == 0:
             self.extract_services_from_reports()
+        if len(self.services):
+            self.logger.info("Analyzing found services")
+        else:
+            self.logger.info("No services were found, exiting.")
+            return
         for port, protocol, service, tunnel in self.services:
             for plugin in self.plugins:
                 if plugin.can_handle(service):
                     folder = "{0}-{1}".format(port, service)
                     filename = "{0}/{1}".format(self.create_path(folder), plugin.name())
-                    p = plugin(self.target, port, service, tunnel)
+                    p = plugin(self.target, port, service=service, tunnel=tunnel, config=self.plugins_conf)
                     self.logger.info("Starting {0} on {1} for service {2}".format(p.plugin_name, self.target, service))
                     p.start(filename)
 
     def tcp_port_scanner(self):
+        """
+        Start a TCP port scanner on target
+        :return: bool True if everything went well, False otherwise
+        """
         self.logger.info("Starting TCP service enumeration on {0}".format(self.target))
         nm_filename = self.create_path("nmap") + "/" + self.target
         nm_tcp_options = "-Pn -sV -O -T4 -p{0} -oA {1}".format("-" if self.ports == 'all' else self.ports, nm_filename)
+        self.logger.debug("nmap {0}".format(nm_tcp_options))
         nm = NmapProcess(self.target, options=nm_tcp_options, event_callback=self.nm_callback, safe_mode=False)
         nm.run()
         if nm.rc != 0:
@@ -96,9 +105,14 @@ class Scanner:
         return True
 
     def udp_port_scanner(self):
+        """
+        Start a UDP port scanner on top 200 ports of target
+        :return: bool True if everything went well, False otherwise
+        """
         self.logger.info("Starting UDP service enumeration on {0} [top 200 ports]".format(self.target))
         nm_filename = self.create_path("nmap") + "/" + self.target + "-UDP"
         nm_udp_options = "-n -Pn -sC -sU --top-ports 200 -T4 -oA {0}".format(nm_filename)
+        self.logger.debug("nmap {0}".format(nm_udp_options))
         nm = NmapProcess(self.target, options=nm_udp_options, event_callback=self.nm_callback, safe_mode=False)
         nm.run()
         if nm.rc != 0:

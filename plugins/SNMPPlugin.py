@@ -10,9 +10,8 @@ class SNMPPlugin(BasePlugin):
     plugin_name = "snmp"
     services = ["snmp"]
 
-    def __init__(self, host, port, service, tunnel="", **kwargs):
-        BasePlugin.__init__(self, host, port, service)
-        self.logger = logging.getLogger("snmp")
+    def __init__(self, host, port, **kwargs):
+        BasePlugin.__init__(self, host, port, **kwargs)
 
     def start(self, report_filename):
         for protocol in ["1", "2c", "3"]:
