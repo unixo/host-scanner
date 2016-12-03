@@ -10,9 +10,6 @@ class DNSPlugin(BasePlugin):
     plugin_name = 'dns'
     services = ["domain"]
 
-    def __init__(self, host, port, **kwargs):
-        BasePlugin.__init__(self, host, port, **kwargs)
-
     def start(self, report_filename):
         if "dns-domain" in self.config:
             cmd = "dig @{0} {1} axfr > {2}.txt".format(self.host, self.config["dns-domain"], report_filename)

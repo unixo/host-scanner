@@ -11,9 +11,6 @@ class TestSSLPlugin(BasePlugin):
     services = ["https"]
     options = "--quiet --warnings batch"
 
-    def __init__(self, host, port, **kwargs):
-        BasePlugin.__init__(self, host, port, **kwargs)
-
     def start(self, report_filename):
         cmd = "testssl {2} --logfile {3} https://{0}:{1} ".format(self.host, self.port, self.options, report_filename)
         self.logger.debug("cmdline: {0}".format(cmd))

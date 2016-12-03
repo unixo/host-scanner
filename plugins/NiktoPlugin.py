@@ -11,9 +11,6 @@ class NiktoPlugin(BasePlugin):
     services = ["http", "https"]
     options = "-C all -ask no -nointeractive -Display 1234"
 
-    def __init__(self, host, port, **kwargs):
-        BasePlugin.__init__(self, host, port, **kwargs)
-
     def start(self, report_filename):
         if self.isSSL:
             cmd = "nikto -h https://{0}:{1} {2} -ssl > {3}.txt".format(self.host, self.port, self.options, report_filename)

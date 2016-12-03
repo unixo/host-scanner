@@ -84,7 +84,7 @@ class Scanner:
                     folder = "{0}-{1}".format(port, service)
                     filename = "{0}/{1}".format(self.create_path(folder), plugin.name())
                     p = plugin(self.target, port, service=service, tunnel=tunnel, config=self.plugins_conf)
-                    self.logger.info("Starting {0} on {1} for service {2}".format(p.plugin_name, self.target, service))
+                    self.logger.info("Starting {0} on {1}:{2} for service {3}".format(p.plugin_name, self.target, port, service))
                     p.start(filename)
 
     def tcp_port_scanner(self):

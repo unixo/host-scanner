@@ -30,6 +30,14 @@ class NmapPlugin(BasePlugin):
 
     def start(self, report_filename):
         scripts = self.options[self.service]
-        cmd = "nmap -sV --script={0} -p{1} {2} -oA {3}".format(scripts, self.port, self.host, report_filename)
+        scripts_args = self._script_args()
+        cmd = "nmap -sV -Pn --script={0} {1} -p{2} {3} -oA {4}".format(scripts, scripts_args, self.port, self.host, report_filename)
         self.logger.debug("cmdline: {0}".format(cmd))
         os.system(cmd)
+
+    def _script_args(self):
+        args = ""
+        if "ms-sql" in self.service:
+            # Specify the port on which the database is listening
+            args = "--script-args=mssql.instance-port={0},smsql.username-sa,mssql.password-sa".format(self.port)
+        return args
