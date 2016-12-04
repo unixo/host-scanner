@@ -20,6 +20,7 @@ class SSHPlugin(BasePlugin):
             client.connect(self.host, port=self.port, username='invalid-username', password='bad-password-on-purpose')
         except:
             banner = client._transport.get_banner()
-        f = open(report_filename, "w")
-        f.write(banner)
-        f.close()
+        if banner:
+            f = open(report_filename, "w")
+            f.write(banner)
+            f.close()

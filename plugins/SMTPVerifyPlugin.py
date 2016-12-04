@@ -13,16 +13,20 @@ class SMTPVerifyPlugin(BasePlugin):
 
     def start(self, report_filename):
         users = self._vrfy()
-        f = open(report_filename, "w")
-        for u in users:
-            f.write(u);
-        f.close()
+        if len(users):
+            f = open(report_filename, "w")
+            for u in users:
+                f.write(u);
+            f.close()
 
     def _vrfy(self):
         found_users = []
         self.logger.debug("Establishing connection to {0}:{1}".format(self.host, self.port))
         recv_data = 0
         (s, banner) = self._connect()
+        if s == False:
+            self.logger.debug("error while connecting, exiting")
+            return found_users
         self.logger.debug("Banner: {0}".format(banner))
 
         ufile = open(self.users_list, 'r')
@@ -35,6 +39,9 @@ class SMTPVerifyPlugin(BasePlugin):
                 recv_data = 0
 
                 (s, banner) = self._connect()
+                if s == False:
+                    self.logger.debug("error while connecting, exiting")
+                    return found_users
 
             user = line.rstrip('\n')
 
@@ -66,9 +73,12 @@ class SMTPVerifyPlugin(BasePlugin):
         return found_users
 
     def _connect(self):
-        s = socket.socket()
-        s.settimeout(10)
-        s.connect((self.host, self.port))
-        banner = s.recv(512)
+        try:
+            s = socket.socket()
+            s.settimeout(10)
+            s.connect((self.host, self.port))
+            banner = s.recv(512)
+        except:
+            return (False, False)
 
         return (s, banner)

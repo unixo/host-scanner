@@ -20,6 +20,6 @@ class DirsearchPlugin(BasePlugin):
         url = "{0}://{1}:{2}/".format("https" if self.isSSL else "http", self.host, self.port)
         exts = ",".join(self.extensions)
         word_lists = " ".join(["-w "+file for file in self.word_lists])
-        cmd_line = "dirsearch.py -u {0} -e {1} --plain-text-report={2} {3}".format(url, exts, report_filename, word_lists)
+        cmd_line = "dirsearch.py -u {0} -e {1} --plain-text-report={2}.txt {3}".format(url, exts, report_filename, word_lists)
         self.logger.debug("cmdline: {0}".format(cmd_line))
         os.system(cmd_line)
