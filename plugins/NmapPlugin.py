@@ -40,4 +40,6 @@ class NmapPlugin(BasePlugin):
         if "ms-sql" in self.service:
             # Specify the port on which the database is listening
             args = "--script-args=mssql.instance-port={0},smsql.username-sa,mssql.password-sa".format(self.port)
+        elif "microsoft-ds" in self.services:
+            args = "--script-args=unsafe=1"
         return args
