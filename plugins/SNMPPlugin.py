@@ -14,5 +14,5 @@ class SNMPPlugin(BasePlugin):
         for protocol in ["1", "2c", "3"]:
             for community in ["public", "private"]:
                 cmd = "snmpwalk -v {0} -c {1} {2}:{3} >> {4}".format(protocol, community, self.host, self.port, report_filename)
-                self.logger(cmd)
+                self.logger.debug(cmd)
                 os.system(cmd)
