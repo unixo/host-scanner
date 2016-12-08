@@ -9,6 +9,7 @@ class NmapPlugin(BasePlugin):
 
     plugin_name = "nmap"
     options = {
+        "ftp": "ftp-*",
         "microsoft-ds": "smb-*",
         "ms-sql": "ms-sql-*",
         "ms-sql-m": "ms-sql-*",
