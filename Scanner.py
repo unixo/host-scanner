@@ -94,7 +94,7 @@ class Scanner:
         """
         self.logger.info("Starting TCP service enumeration on {0}".format(self.target))
         nm_filename = self.create_path("nmap") + "/" + self.target
-        nm_tcp_options = "-Pn -sV -O -T4 -p{0} -oA {1}".format("-" if self.ports == 'all' else self.ports, nm_filename)
+        nm_tcp_options = "-A -Pn -sV -O -T4 -p{0} -oA {1}".format("-" if self.ports == 'all' else self.ports, nm_filename)
         self.logger.debug("nmap {0}".format(nm_tcp_options))
         nm = NmapProcess(self.target, options=nm_tcp_options, event_callback=self.nm_callback, safe_mode=False)
         nm.run()
@@ -111,7 +111,7 @@ class Scanner:
         """
         self.logger.info("Starting UDP service enumeration on {0} [top 200 ports]".format(self.target))
         nm_filename = self.create_path("nmap") + "/" + self.target + "-UDP"
-        nm_udp_options = "-n -Pn -sC -sU --top-ports 200 -T4 -oA {0}".format(nm_filename)
+        nm_udp_options = "-A -n -Pn -sC -sU --top-ports 200 -T4 -oA {0}".format(nm_filename)
         self.logger.debug("nmap {0}".format(nm_udp_options))
         nm = NmapProcess(self.target, options=nm_udp_options, event_callback=self.nm_callback, safe_mode=False)
         nm.run()
