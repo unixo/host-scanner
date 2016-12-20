@@ -32,7 +32,7 @@ class NmapPlugin(BasePlugin):
     def start(self, report_filename):
         scripts = self.options[self.service]
         scripts_args = self._script_args()
-        cmd = "nmap -A -sV -Pn --script={0} {1} -p{2} {3} -oA {4}".format(scripts, scripts_args, self.port, self.host, report_filename)
+        cmd = "nmap -A -sV -Pn --script=default,{0} {1} -p{2} {3} -oA {4}".format(scripts, scripts_args, self.port, self.host, report_filename)
         self.logger.debug("cmdline: {0}".format(cmd))
         os.system(cmd)
 
