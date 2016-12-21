@@ -21,6 +21,7 @@ class NmapPlugin(BasePlugin):
                  "http-grep,http-method-tamper,http-methods,http-passwd,http-robots.txt,http-userdir-enum,http-vhosts,"
                  "ssl-*",
         "snmp": "snmp-*",
+        "smtp": "smtp-*",
     }
     services = options.keys()
 
