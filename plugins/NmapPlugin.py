@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from BasePlugin import BasePlugin
-import logging
 import os
 
 
@@ -15,6 +14,7 @@ class NmapPlugin(BasePlugin):
         "ms-sql-m": "ms-sql-*",
         "ms-sql-s": "ms-sql-*",
         "mysql": "mysql-*",
+        "netbios-ssn": "smb-vuln-*",
         "http": "http-apache-negotiation,http-backup-finder,http-config-backup,http-default-accounts,http-headers,"
                 "http-grep,http-method-tamper,http-methods,http-passwd,http-robots.txt,http-userdir-enum,http-vhosts",
         "https": "http-apache-negotiation,http-backup-finder,http-config-backup,http-default-accounts,http-headers,"

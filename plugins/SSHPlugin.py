@@ -2,7 +2,6 @@
 
 from BasePlugin import BasePlugin
 import paramiko
-import logging
 
 
 class SSHPlugin(BasePlugin):

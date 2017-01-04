@@ -28,6 +28,7 @@ DEBUG:ssh:Grabbing SSH banner
 * SMTP VRFY
 * SSH banner grab
 * testssl.sh
+* enum4linux
 
 ## Dependencies
 * paramiko (https://github.com/paramiko/paramiko)
