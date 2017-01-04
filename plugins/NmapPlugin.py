@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from BasePlugin import BasePlugin
+import logging
 import os
 
 

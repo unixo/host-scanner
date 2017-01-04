@@ -27,8 +27,8 @@ class BasePlugin(object):
         return self.services
 
     @classmethod
-    def name(self):
-        return self.plugin_name
+    def name(cls):
+        return cls.plugin_name
 
     @classmethod
     def can_handle(cls, service):
