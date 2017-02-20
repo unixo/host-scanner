@@ -8,7 +8,7 @@ class DirsearchPlugin(BasePlugin):
 
     plugin_name = "dirsearch"
     services = ["http", "https"]
-    extensions = ["php", "pl", "asp", "jsp"]
+    extensions = ["php", "pl", "asp", "jsp", "txt"]
     word_lists = [
         "/usr/share/dirb/wordlists/big.txt",
         "/usr/share/seclists/Discovery/Web_Content/Top1000-RobotsDisallowed.txt",
